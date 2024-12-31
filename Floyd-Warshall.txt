@@ -1,0 +1,63 @@
+#include <iostream>
+#include <vector>
+#include <climits>
+#include <chrono> // For timing
+
+using namespace std;
+
+const int INF = INT_MAX;
+
+void floydWarshall(vector<vector<int>>& graph, int n) {
+    vector<vector<int>> dist = graph;
+
+    for (int k = 0; k < n; ++k) {
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < n; ++j) {
+                if (dist[i][k] != INF && dist[k][j] != INF) {
+                    dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j]);
+                }
+            }
+        }
+    }
+
+    cout << "Shortest distances between every pair of vertices:" << endl;
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            if (dist[i][j] == INF)
+                cout << "INF ";
+            else
+                cout << dist[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+
+int main() {
+    int n, m;
+    cout << "Enter the number of nodes and edges: ";
+    cin >> n >> m;
+
+    vector<vector<int>> graph(n, vector<int>(n, INF));
+
+    for (int i = 0; i < n; ++i) {
+        graph[i][i] = 0; // Distance to itself is 0
+    }
+
+    cout << "Enter edges (u v weight):" << endl;
+    for (int i = 0; i < m; ++i) {
+        int u, v, w;
+        cin >> u >> v >> w;
+        graph[u - 1][v - 1] = w;
+    }
+
+    auto start_time = chrono::high_resolution_clock::now(); // Start timer
+
+    floydWarshall(graph, n);
+
+    auto end_time = chrono::high_resolution_clock::now(); // Stop timer
+    chrono::duration<double> elapsed = end_time - start_time;
+
+    cout << "\nExecution Time: " << elapsed.count() << " s" << endl;
+
+    return 0;
+}

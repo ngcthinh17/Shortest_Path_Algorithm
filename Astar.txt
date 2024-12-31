@@ -1,0 +1,107 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <unordered_map>
+#include <cmath>
+#include <chrono>
+#include <limits>
+
+using namespace std;
+
+struct Node {
+    int vertex;
+    double g;  // Chi phí từ điểm bắt đầu đến node
+    double h;  // Chi phí ước tính đến mục tiêu
+    double f;  // f = g + h
+
+    Node(int v, double g_val, double h_val) : vertex(v), g(g_val), h(h_val), f(g_val + h_val) {}
+
+    bool operator>(const Node& other) const {
+        return f > other.f;
+    }
+};
+
+double heuristic(int a, int b) {
+    return abs(a - b);  // Heuristic: khoảng cách Manhattan (có thể thay đổi tùy bài toán)
+}
+
+void AStar(int n, vector<vector<pair<int, double>>>& graph, int start, int goal) {
+    priority_queue<Node, vector<Node>, greater<Node>> pq;
+    unordered_map<int, int> cameFrom;
+    unordered_map<int, double> gScore;
+    unordered_map<int, double> fScore;
+
+    // Khởi tạo node bắt đầu
+    gScore[start] = 0;
+    fScore[start] = heuristic(start, goal);
+    pq.push(Node(start, 0, fScore[start]));
+
+    while (!pq.empty()) {
+        Node current = pq.top();
+        pq.pop();
+
+        // Nếu đạt đến điểm đích, in ra đường đi
+        if (current.vertex == goal) {
+            cout << "Path found: ";
+            vector<int> path;
+            int temp = goal;
+            while (cameFrom.find(temp) != cameFrom.end()) {
+                path.push_back(temp);
+                temp = cameFrom[temp];
+            }
+            path.push_back(start);
+            reverse(path.begin(), path.end());
+            for (int node : path) {
+                cout << node << " ";
+            }
+            cout << endl;
+            return;
+        }
+
+        // Duyệt các đỉnh kề
+        for (auto& neighbor : graph[current.vertex]) {
+            int neighborVertex = neighbor.first;
+            double weight = neighbor.second;
+            double tentativeGScore = gScore[current.vertex] + weight;
+
+            // Nếu tìm thấy đường đi tốt hơn, cập nhật
+            if (gScore.find(neighborVertex) == gScore.end() || tentativeGScore < gScore[neighborVertex]) {
+                cameFrom[neighborVertex] = current.vertex;
+                gScore[neighborVertex] = tentativeGScore;
+                fScore[neighborVertex] = gScore[neighborVertex] + heuristic(neighborVertex, goal);
+                pq.push(Node(neighborVertex, gScore[neighborVertex], fScore[neighborVertex]));
+            }
+        }
+    }
+
+    cout << "No path found." << endl;
+}
+
+int main() {
+    int n, m;
+    cout << "Enter number of vertices and edges: ";
+    cin >> n >> m;
+
+    vector<vector<pair<int, double>>> graph(n + 1);  // Graph: adjacency list
+
+    cout << "Enter edges (start, end, weight):\n";
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        double weight;
+        cin >> u >> v >> weight;
+        graph[u].push_back({v, weight});
+        graph[v].push_back({u, weight});  // Nếu đồ thị vô hướng
+    }
+
+    int start, goal;
+    cout << "Enter start vertex and goal vertex: ";
+    cin >> start >> goal;
+
+    auto start_time = chrono::high_resolution_clock::now();
+    AStar(n, graph, start, goal);
+    auto end_time = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed = end_time - start_time;
+    cout << "\nExecution Time: " << elapsed.count() << " s" << endl;
+
+    return 0;
+}

@@ -1,0 +1,72 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <limits>
+#include <chrono>
+#include <iomanip>
+
+using namespace std;
+
+// Function to implement Dijkstra's Algorithm
+void dijkstra(int source, int n, const vector<vector<pair<int, int>>>& graph) {
+    vector<long long> dist(n + 1, numeric_limits<long long>::max());
+    priority_queue<pair<long long, int>, vector<pair<long long, int>>, greater<>> pq;
+
+    dist[source] = 0;
+    pq.push({0, source});
+
+    while (!pq.empty()) {
+        auto [current_dist, u] = pq.top();
+        pq.pop();
+
+        if (current_dist > dist[u]) continue;
+
+        for (auto [v, weight] : graph[u]) {
+            if (dist[u] + weight < dist[v]) {
+                dist[v] = dist[u] + weight;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+
+    // Output distances
+    for (int i = 1; i <= n; ++i) {
+        if (dist[i] == numeric_limits<long long>::max()) {
+            cout << "Node " << i << ": unreachable\n";
+        } else {
+            cout << "Node " << i << ": " << dist[i] << "\n";
+        }
+    }
+}
+
+int main() {
+    int n, m;
+    //cout << "Enter number of nodes and edges: ";
+    cin >> n >> m;
+
+    vector<vector<pair<int, int>>> graph(n + 1);
+
+    //cout << "Enter edges (u, v, weight):\n";
+    for (int i = 0; i < m; ++i) {
+        int u, v, w;
+        cin >> u >> v >> w;
+        graph[u].push_back({v, w});
+        graph[v].push_back({u, w}); // Comment this line for directed graphs
+    }
+
+    int source;
+    //cout << "Enter source node: ";
+    cin >> source;
+
+    // Benchmarking
+    auto start_time = chrono::high_resolution_clock::now();
+
+    dijkstra(source, n, graph);
+
+    auto end_time = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed = end_time - start_time;
+    double timer=elapsed.count();
+    cout << "\nExecution Time: " <<timer << " s";
+
+    return 0;
+}

@@ -1,0 +1,68 @@
+#include <iostream>
+#include <vector>
+#include <chrono>
+#include <climits>
+
+using namespace std;
+
+struct Edge {
+    int u, v;
+    double weight;
+};
+
+bool bellmanFord(int n, vector<Edge>& edges, int source) {
+    // Khởi tạo khoảng cách từ nguồn tới tất cả các đỉnh
+    vector<double> dist(n, INT_MAX);
+    dist[source] = 0;
+
+    // Thực hiện n-1 vòng lặp để tìm đường đi ngắn nhất
+    for (int i = 1; i < n; ++i) {
+        for (auto& edge : edges) {
+            if (dist[edge.u] != INT_MAX && dist[edge.u] + edge.weight < dist[edge.v]) {
+                dist[edge.v] = dist[edge.u] + edge.weight;
+            }
+        }
+    }
+
+    // Kiểm tra chu trình âm
+    for (auto& edge : edges) {
+        if (dist[edge.u] != INT_MAX && dist[edge.u] + edge.weight < dist[edge.v]) {
+            // Phát hiện chu trình âm
+            cout << "Chu trình âm phát hiện!" << endl;
+            return false;
+        }
+    }
+
+    cout << "Không có chu trình âm." << endl;
+    return true;
+}
+
+int main() {
+    int n, m;
+    cout << "Nhập số đỉnh n và số cạnh m: ";
+    cin >> n >> m;
+
+    vector<Edge> edges(m);
+    cout << "Nhập các cạnh dưới dạng (u, v, trọng số):\n";
+    for (int i = 0; i < m; i++) {
+        cin >> edges[i].u >> edges[i].v >> edges[i].weight;
+    }
+
+    int source;
+    cout << "Nhập đỉnh nguồn: ";
+    cin >> source;
+
+    auto start_time = chrono::high_resolution_clock::now();
+
+    // Chạy Bellman-Ford để phát hiện chu trình âm
+    if (bellmanFord(n, edges, source)) {
+        cout << "Đường đi ngắn nhất từ đỉnh " << source << " đã được tính toán thành công.\n";
+    }
+
+    auto end_time = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed = end_time - start_time;
+    
+    cout << "Execution Time: " << elapsed.count() << " s" << endl;
+
+    return 0;
+}
